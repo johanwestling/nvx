@@ -1,19 +1,21 @@
 #!/bin/bash
 
 #
-# NVX > Variables
+#  Output
 #
 
-# Paths
-nvx_path=".nvx"
-nvx_node_path="${nvx_path}/node"
-nvx_node_artifact_path="${nvx_node_path}/artifact"
-nvx_node_binary_path="${nvx_node_path}/binary"
-
-# Output
 nvx_output_line_length=80
 
+# Style
+nvx_output_style_default="\033[0m"
+nvx_output_style_bright="\033[1m"
+nvx_output_style_dim="\033[2m"
+nvx_output_style_underline="\033[4m"
+
+# Colors
 nvx_output_color_default="\033[39;49m"
+
+# Colors - Foreground
 nvx_output_color_foreground_default="\033[39m"
 nvx_output_color_foreground_black="\033[30m"
 nvx_output_color_foreground_red="\033[31m"
@@ -22,6 +24,8 @@ nvx_output_color_foreground_yellow="\033[33m"
 nvx_output_color_foreground_blue="\033[34m"
 nvx_output_color_foreground_magenta="\033[35m"
 nvx_output_color_foreground_cyan="\033[36m"
+
+# Colors - Background
 nvx_output_color_background_default="\033[49m"
 nvx_output_color_background_black="\033[40m"
 nvx_output_color_background_red="\033[41m"
@@ -30,121 +34,6 @@ nvx_output_color_background_yellow="\033[43m"
 nvx_output_color_background_blue="\033[44m"
 nvx_output_color_background_magenta="\033[45m"
 nvx_output_color_background_cyan="\033[46m"
-
-nvx_output_style_default="\033[0m"
-nvx_output_style_bright="\033[1m"
-nvx_output_style_dim="\033[2m"
-nvx_output_style_underline="\033[4m"
-
-#
-# NVX > Core
-#
-
-# Install
-nvx_install() {
-  local bashrc_file="${HOME}/.bashrc"
-  local bashrc_registered=$(grep -E '# nvx - >>>>>' "${bashrc_file}")
-
-  
-  if [ -z "${bashrc_registered}" ]; then
-    # Install nvx to .bashrc
-    nvx_output_step "Installing nvx..."
-echo '
-# nvx - >>>>>
-nvx_execute() {
-  local nvx_args=${@}
-  local nvx_local="${PWD}/.nvx/functions.sh"
-
-  if [ -f "${nvx_local}" ]; then
-    source "${nvx_local}"
-    nvx_execute_local ${nvx_args} 
-  else
-    nvx_execute_global ${nvx_args}
-  fi
-}
-
-nvx_execute_global() {
-  local nvx_args=${@}
-
-  nvx_output_step "Executing global ${nvx_args}..."
-  exec ${nvx_args}
-}
-
-node() {
-  nvx_execute "node" ${@}
-}
-
-npm() {
-  nvx_execute "npm" ${@}
-}
-
-npx() {
-  nvx_execute "npx" ${@}
-}
-
-nvx() {
-  bash "${PWD}/nvx.sh" ${@}
-}
-# nvx - <<<<<
-' >> "${bashrc_file}"
-    
-    # Reload bash session to apply .bashrc changes
-    nvx_output_step "Reloading bash to activate nvx..."
-    exec bash
-  fi
-}
-
-# Uninstall
-nvx_uninstall() {
-  local bashrc_file="${HOME}/.bashrc"
-  local bashrc_registered=$(grep -E '# nvx - >>>>>' "${bashrc_file}")
-
-  nvx_output_step "Uninstalling nvx..."
-
-  if [ -z "${bashrc_registered}" ]; then
-    # Uninstall nvx from .bashrc
-    nvx_output_step_error "Already uninstalled!"
-  fi
-}
-
-# Output the path to the appropriate binary
-nvx_binary_path() {
-  local binary_path=$(head -n 1 "${PWD}/${nvx_node_path}/node_bin")
-
-  if [ ! -z "${binary_path}" ]; then
-    echo "${binary_path}"
-  fi
-}
-
-# Local execution
-nvx_execute_local() {
-  local nvx_args=${@}
-  local nvx_node_path=$(head -n 1 "${PWD}/${nvx_node_path}/node_bin")
-
-  nvx_output_step "Executing local ${PWD}/${nvx_node_path}/${nvx_args}..."
-  eval "${PWD}/${nvx_node_path}/${nvx_args}"
-}
-
-nvx_node_version() {
-  local node_version=$1
-  local nvxrc_file="${PWD}/.nvxrc"
-
-  if [ -z "${node_version}" ]; then
-    if [ -f "${nvxrc_file}" ]; then
-      node_version=$(grep -E 'node_version=[0-9].*' "${nvxrc_file}" | cut -d "=" -f2)
-    fi
-  fi
-
-  if [ -z "${node_version}" ]; then
-    node_version='latest'
-  fi
-
-  echo $node_version
-}
-
-#
-# NVX > Output
-#
 
 # Boxes
 nvx_output_box_color_foreground="${nvx_output_color_foreground_magenta}"
@@ -156,6 +45,20 @@ nvx_output_box_bottom_left="┗"
 nvx_output_box_bottom_right="┛"
 nvx_output_box_separator="╌"
 
+# Steps
+nvx_output_step_prefix="−→ "
+nvx_output_step_prefix_color_foreground="${nvx_output_color_foreground_magenta}"
+nvx_output_step_done_prefix=" › "
+nvx_output_step_error_prefix=" ! "
+
+# Separators
+nvx_output_separator="╌"
+nvx_output_separator_color_foreground="${nvx_output_color_foreground_magenta}"
+
+#
+#  Output - Boxes
+#
+
 nvx_output_box_start() {
   local box_width=$(($nvx_output_line_length - 3))
   local box_border=$(eval printf "${nvx_output_box_horizontal}"'%.0s' {1..$box_width})
@@ -166,12 +69,12 @@ nvx_output_box_start() {
 }
 
 nvx_output_box_text() {
-  # Function defaults
+  # Defaults
   local box_input="$1"
   local box_justify="left"
   local box_style="default"
 
-  # Function override arguments
+  # Overrides
   while [ $# -gt 0 ]; do
     case "$1" in
       --justify=*)
@@ -179,9 +82,6 @@ nvx_output_box_text() {
         ;;
       --style=*)
         box_style="${1#*=}"
-        ;;
-      *)
-        # Ignore other args
         ;;
     esac
     shift
@@ -227,10 +127,9 @@ nvx_output_box_stop() {
   echo -e "${nvx_output_box_color_foreground}${nvx_output_box_bottom_left}${box_border}${nvx_output_box_bottom_right}${nvx_output_color_foreground_default}"
 }
 
-# Steps
-nvx_output_step_prefix="−→ "
-nvx_output_step_prefix_color_foreground="${nvx_output_color_foreground_magenta}"
-nvx_output_step_error_prefix=" ! "
+#
+#  Output - Steps
+#
 
 nvx_output_step() {
   local step_width=$(($nvx_output_line_length - ${#nvx_output_step_prefix}))
@@ -243,6 +142,23 @@ nvx_output_step() {
       echo -e "${nvx_output_step_prefix_color_foreground}${nvx_output_style_bright}${nvx_output_step_prefix}${nvx_output_style_default}${nvx_output_color_foreground_default}${step_line}${nvx_output_style_default}"
     else
       echo -e "${step_indent}${step_line}${nvx_output_style_default}"
+    fi
+
+    step_output_lines=$(($step_output_lines + 1))
+  done <<< "$step_output"
+}
+
+nvx_output_step_done() {
+  local step_width=$(($nvx_output_line_length - ${#nvx_output_step_prefix}))
+  local step_output=$(echo "${1}" | fold -sw $step_width)
+  local step_output_lines=0
+  local step_indent=$(eval printf " "'%.0s' {1..${#nvx_output_step_prefix}})
+
+  while read -r step_line; do
+    if [ $step_output_lines -eq 0 ]; then
+      echo -e "${nvx_output_step_prefix_color_foreground}${nvx_output_step_done_prefix}${nvx_output_color_foreground_default}${nvx_output_style_bright}${step_line}${nvx_output_style_default}"
+    else
+      echo -e "${step_indent}${nvx_output_style_bright}${step_line}${nvx_output_style_default}"
     fi
 
     step_output_lines=$(($step_output_lines + 1))
@@ -266,9 +182,9 @@ nvx_output_step_error() {
   done <<< "$step_output"
 }
 
-# Separators
-nvx_output_separator="╌"
-nvx_output_separator_color_foreground="${nvx_output_color_foreground_magenta}"
+#
+#  Output - Separators
+#
 
 nvx_output_separator() {
   local separator_width=$(($nvx_output_line_length - 1))
