@@ -158,23 +158,38 @@ nvx_node_system_architecture() {
   esac
 }
 
-nvx_node_download_artifact() {
-  local dist_url=$1
-  local version_exact=$2
-  local system_os=$3
-  local system_architecture=$4
-  local artifact_file=$5
+nvx_node_artifact_download() {
+  local artifact_url=$1
+  local artifact_file=$2
 
   if [ ! -f "${artifact_file}" ]; then
     touch "${artifact_file}" >> $nvx_log 2>&1
   fi
 
   if [ -f "${artifact_file}" ]; then
-    curl "${dist_url}/node-${version_exact}-${system_os}-${system_architecture}.tar.gz" -o "${artifact_file}" >> $nvx_log 2>&1
+    curl "${artifact_url}" -o "${artifact_file}" >> $nvx_log 2>&1
 
     local artifact_downloaded=$(du -k "${artifact_file}" | cut -f1)
 
     if [ $artifact_downloaded -ge 10000 ]; then
+      echo true
+    fi
+  fi
+}
+
+nvx_node_artifact_extract() {
+  local artifact_file=$1
+  local artifact_name=$2
+  local version_exact=$3
+  local binary_dir="${nvx_node_binary_path}/${version_exact}"
+
+  if [ -d "${binary_dir}" ]; then
+    echo true
+  else
+    tar -xvf "${artifact_file}" -C "${nvx_node_binary_path}" >> $nvx_log 2>&1
+    mv "${nvx_node_binary_path}/${artifact_name}" "${binary_dir}" >> $nvx_log 2>&1
+    
+    if [ -d "${binary_dir}" ]; then
       echo true
     fi
   fi
@@ -188,7 +203,9 @@ nvx_node_install() {
   local checksums_file="${nvx_node_path}/SHASUMS256-node-${version}"
   local system_os=$(command uname -a | cut -d " " -f1 | sed -e 's/\(.*\)/\L\1/')
   local system_architecture=$(nvx_node_system_architecture)
-  local node_artifact=""
+  local artifact_name=""
+  local artifact_url=""
+  local artifact_file=""
 
   echo -n "" > $nvx_log
 
@@ -273,12 +290,42 @@ nvx_node_install() {
   fi
 
   # Download node artifact
-  node_artifact="${nvx_node_artifact_path}/${version_exact}.tar.gz"
+  artifact_name="node-${version_exact}-${system_os}-${system_architecture}"
+  artifact_url="${dist_url}/${artifact_name}.tar.gz"
+  artifact_file="${nvx_node_artifact_path}/${version_exact}.tar.gz"
 
-  if [ ! -f "${node_artifact}" ]; then 
+  if [ ! -f "${artifact_file}" ]; then 
     nvx_output_step "Downloading node artifact..."
 
-    if [ $(nvx_node_download_artifact "${dist_url}" "${version_exact}" "${system_os}" "${system_architecture}" "${node_artifact}") = true ]; then
+    if [ $(nvx_node_artifact_download "${artifact_url}" "${artifact_file}") = true ]; then
+      nvx_output_step_done "Done"
+    else
+      nvx_output_step_error "Failed"
+      exit
+    fi
+
+    echo ""
+  fi
+
+  # Create node binary path
+  if ! [[ $(nvx_dir_exists "${nvx_node_binary_path}") = true ]]; then
+    nvx_output_step "Creating ${nvx_node_binary_path} directory..."
+
+    if [ $(nvx_dir_create "${nvx_node_binary_path}") = true ]; then
+      nvx_output_step_done "Done"
+    else
+      nvx_output_step_error "Failed"
+      exit
+    fi
+
+    echo ""
+  fi
+  
+  # Extract node artifact to binary path
+  if [ ! -d "${binary_dir}" ]; then
+    nvx_output_step "Extracting ${artifact_file}..."
+
+    if [[ $(nvx_node_artifact_extract "${artifact_file}" "${artifact_name}" "${version_exact}") = true ]]; then
       nvx_output_step_done "Done"
     else
       nvx_output_step_error "Failed"
