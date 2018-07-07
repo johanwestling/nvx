@@ -4,16 +4,16 @@ node() {
   local binary_path=$(nvx_binary_path)
   local binary_name="node"
   local binary_args=${@}
-
-  nvx_execute ${binary_path} ${binary_name} ${binary_args}
+  
+  nvx_binary_execute "${binary_path}" "${binary_name}" ${binary_args}
 }
 
 npm() {
   local binary_path=$(nvx_binary_path)
   local binary_name="npm"
   local binary_args=${@}
-
-  nvx_execute ${binary_path} ${binary_name} ${binary_args}
+  
+  nvx_binary_execute "${binary_path}" "${binary_name}" ${binary_args}
 }
 
 npx() {
@@ -21,7 +21,7 @@ npx() {
   local binary_name="npx"
   local binary_args=${@}
 
-  nvx_execute ${binary_path} ${binary_name} ${binary_args}
+  nvx_binary_execute "${binary_path}" "${binary_name}" ${binary_args}
 }
 
 nvx() {
@@ -38,7 +38,7 @@ nvx() {
 
 nvx_binary_path() {
   local binary_path=""
-  local binary_reference="${PWD}/.nvx/node/node_bin"
+  local binary_reference="${PWD}/.nvx/node/reference"
 
   if [ -f "${binary_reference}" ]; then
     # Load node binary path from nvx
@@ -47,21 +47,23 @@ nvx_binary_path() {
 
   if [ ! -z "${binary_path}" ]; then
     # Local nvx path
-    echo "${PWD}/${binary_path}"
+    echo "${binary_path}"
   else
     # System default path
     echo "/usr/bin"
   fi
 }
 
-nvx_execute() {
-  local binary_path="$1"
-  local binary_name="$2"
+nvx_binary_execute() {
+  local binary_path=$1
+  local binary_name=$2
   local binary_args=${@:3}
+  local binary="${binary_path}/${binary_name}"
 
   PATH="${PATH}:${binary_path}"
 
-  eval "${binary_path}/${binary_name} ${binary_args}"
+  echo -e "\033[35m−→ \033[39;49m${binary} ${binary_args}"
+  eval "${binary} ${binary_args}"
 }
 
 # <<<<< nvx <<<<< #

@@ -41,7 +41,7 @@ echo ""
 nvx_output_box_start
 nvx_output_box_text "NVX" --style="bright"
 nvx_output_box_separator
-nvx_output_box_text "Version:            v0.0.1"
+nvx_output_box_text "Version:            v0.0.2"
 nvx_output_box_text "Author:             Johan Westling"
 nvx_output_box_separator
 nvx_output_box_text "Node version:       ${nvx_node_version}"

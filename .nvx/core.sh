@@ -4,13 +4,12 @@
 #  Core
 #
 
+nvx_log="${nvx_path}/nvx.log"
+
 # Paths
 nvx_path=".nvx"
 nvx_node_path="${nvx_path}/node"
-nvx_node_artifact_path="${nvx_node_path}/artifact"
-nvx_node_binary_path="${nvx_node_path}/binary"
-
-nvx_log="${nvx_path}/nvx.log"
+nvx_node_reference="${nvx_node_path}/reference"
 
 source ".nvx/output.sh"
 
@@ -32,6 +31,7 @@ nvx_install() {
     # Update nvx in .bashrc
     nvx_output_step "Updating nvx..."
     sed -i '/# >>>>> nvx >>>>> #/,/# <<<<< nvx <<<<< #/d' "${bashrc_file}"
+    cat "${nvx_content}" >> "${bashrc_file}"
     nvx_output_step_done "Updated!"
   fi
 
@@ -66,15 +66,72 @@ nvx_uninstall() {
 
 nvx_dir_exists() {
   if [ -d "$1" ]; then
-    echo true
+    echo "true"
+  else
+    echo "false"
   fi
 }
 
 nvx_dir_create() {
-  mkdir -p "$1" >> $nvx_log 2>&1
+  local dir=$1
 
-  if [ -d "$1" ]; then
-    echo true
+  if ! [[ $(nvx_dir_exists "${dir}") = true ]]; then
+    mkdir -p "${dir}" >> $nvx_log 2>&1
+
+    if [ -d "${dir}" ]; then
+      echo "true"
+    else
+      echo "false"
+    fi
+  else
+    echo "already_exists"
+  fi
+}
+
+nvx_dir_move() {
+  local dir=$1
+  local target=$2
+
+  if [[ $(nvx_dir_exists "${dir}") = true ]]; then
+    mv "${dir}" "${target}" >> $nvx_log 2>&1;
+
+    if [ -d "${target}" ]; then
+      echo "true"
+    else
+      echo "false"
+    fi
+  else
+    echo "already_exists"
+  fi
+}
+
+nvx_url_download() {
+  local url=$1
+  local file=$2
+
+  if [ ! -f "${file}" ]; then
+    if curl "${url}" -f -o "${file}" >> $nvx_log 2>&1; then
+      echo "true"
+    else
+      echo "false"
+    fi
+  else
+    echo "already_exists"
+  fi
+}
+
+nvx_extract() {
+  local file=$1
+  local directory=$2
+  
+  if [ $(ls -afq "${directory}" | wc -l) -lt 4 ]; then
+    if tar -xvf "${file}" -C "${directory}" >> $nvx_log 2>&1; then
+      echo "true"
+    else
+      echo "false"
+    fi
+  else
+    echo "already_exists"
   fi
 }
 
@@ -82,60 +139,28 @@ nvx_dir_create() {
 #  Core - Node
 #
 
-
 nvx_node_detect_version() {
-  local node_version=$1
-  local nvxrc_file="${PWD}/.nvxrc"
+  local version=$1
+  local file="${PWD}/.nvxrc"
 
-  if [ -z "${node_version}" ]; then
-    if [ -f "${nvxrc_file}" ]; then
-      node_version=$(grep -E 'node_version=[0-9].*' "${nvxrc_file}" | cut -d "=" -f2)
+  if [ -z "${version}" ]; then
+    if [ -f "${file}" ]; then
+      version=$(grep -E 'node_version=[0-9].*' "${file}" | cut -d "=" -f2)
     fi
   fi
 
-  if [ -z "${node_version}" ]; then
-    node_version="latest"
+  if [ -z "${version}" ]; then
+    version="latest"
   fi
 
-  echo $node_version
+  echo "${version}"
 }
 
-nvx_node_dist_url() {
-  local node_version=${1:-"latest"}
+nvx_node_detect_version_exact() {
+  local file=$1
 
-  if [ "${node_version}" = "latest" ]; then
-    local node_dist_url="https://nodejs.org/dist/latest"
-  else
-    local node_dist_url="https://nodejs.org/dist/latest-v${node_version}"
-  fi
-
-  echo $node_dist_url
-}
-
-nvx_node_download_checksums() {
-  local checksums_url=$1
-  local checksums_file=$2
-
-  if [ ! -f "${checksums_file}" ]; then
-    touch "${checksums_file}" >> $nvx_log 2>&1
-  fi
-
-  if [ -f "${checksums_file}" ]; then
-    curl "${checksums_url}" -o "${checksums_file}" >> $nvx_log 2>&1
-
-    local checksums_downloaded=$(grep -E '^.{65} ' "${checksums_file}")
-
-    if [ ! -z "${checksums_downloaded}" ]; then
-      echo true
-    fi
-  fi
-}
-
-nvx_node_version_checksums() {
-  local checksums_file=$1
-
-  if [ -f "${checksums_file}" ]; then
-    local checksums=$(grep -E 'node-v.*\.tar\.gz' "${checksums_file}")
+  if [ -f "${file}" ]; then
+    local checksums=$(grep -E 'node-v.*\.tar\.gz' "${file}")
     local version=$(echo "${checksums}" | sed 's/^.*-\(v[0-9]*\.[0-9]*\.[0-9]*\).*$/\1/' | head -n 1)
 
     if [ ! -z "${version}" ]; then
@@ -144,7 +169,11 @@ nvx_node_version_checksums() {
   fi
 }
 
-nvx_node_system_architecture() {
+nvx_node_detect_platform() {
+  echo $(command uname -a | cut -d " " -f1 | sed -e 's/\(.*\)/\L\1/')
+}
+
+nvx_node_detect_architecture() {
   case $(command uname -m) in
     x86_64 | amd64)
       echo "x64"
@@ -158,180 +187,161 @@ nvx_node_system_architecture() {
   esac
 }
 
-nvx_node_artifact_download() {
-  local artifact_url=$1
-  local artifact_file=$2
+nvx_node_download_url() {
+  local version=${1:-"latest"}
 
-  if [ ! -f "${artifact_file}" ]; then
-    touch "${artifact_file}" >> $nvx_log 2>&1
+  if [ "${version}" = "latest" ]; then
+    local url="https://nodejs.org/dist/latest"
+  else
+    local url="https://nodejs.org/dist/latest-v${version}"
   fi
 
-  if [ -f "${artifact_file}" ]; then
-    curl "${artifact_url}" -o "${artifact_file}" >> $nvx_log 2>&1
-
-    local artifact_downloaded=$(du -k "${artifact_file}" | cut -f1)
-
-    if [ $artifact_downloaded -ge 10000 ]; then
-      echo true
-    fi
-  fi
+  echo "${url}"
 }
 
-nvx_node_artifact_extract() {
-  local artifact_file=$1
-  local artifact_name=$2
-  local version_exact=$3
-  local binary_dir="${nvx_node_binary_path}/${version_exact}"
+nvx_node_reference_store() {
+  local reference="${PWD}/${1}"
 
-  if [ -d "${binary_dir}" ]; then
-    echo true
+  if [ ! -f "${nvx_node_reference}" ]; then
+    touch "${nvx_node_reference}"
+  fi
+
+  echo "${reference}" > "${nvx_node_reference}"
+
+  if grep -q "${reference}" "${nvx_node_reference}"; then
+    echo "true"
   else
-    tar -xvf "${artifact_file}" -C "${nvx_node_binary_path}" >> $nvx_log 2>&1
-    mv "${nvx_node_binary_path}/${artifact_name}" "${binary_dir}" >> $nvx_log 2>&1
-    
-    if [ -d "${binary_dir}" ]; then
-      echo true
-    fi
+    echo "false"
   fi
 }
 
 nvx_node_install() {
   local version=${1:-"latest"}
-  local version_exact=""
-  local dist_url=$(nvx_node_dist_url $version)
-  local checksums_url="${dist_url}/SHASUMS256.txt"
-  local checksums_file="${nvx_node_path}/SHASUMS256-node-${version}"
-  local system_os=$(command uname -a | cut -d " " -f1 | sed -e 's/\(.*\)/\L\1/')
-  local system_architecture=$(nvx_node_system_architecture)
-  local artifact_name=""
-  local artifact_url=""
-  local artifact_file=""
+  local platform=$(nvx_node_detect_platform)
+  local architecture=$(nvx_node_detect_architecture)
+  local download_url=$(nvx_node_download_url "${version}")
 
+  # Reset log file
   echo -n "" > $nvx_log
 
   # Create node path
-  if ! [[ $(nvx_dir_exists "${nvx_node_path}") = true ]]; then
-    nvx_output_step "Creating ${nvx_node_path} directory..."
-
-    if [ $(nvx_dir_create "${nvx_node_path}") = true ]; then
-      nvx_output_step_done "Done"
-    else
-      nvx_output_step_error "Failed"
-      exit
-    fi
-
-    echo ""
-  fi
-
-  # Download node checksums
-  if [ ! -f "${checksums_file}" ]; then 
-    nvx_output_step "Downloading node checksums..."
-
-    if [ $(nvx_node_download_checksums "${checksums_url}" "${checksums_file}") = true ]; then
-      nvx_output_step_done "Done"
-    else
-      nvx_output_step_error "Failed"
-      exit
-    fi
-
-    echo ""
-  fi
-
-  # Detect exact node version
-  if [ -f "${checksums_file}" ]; then
-    nvx_output_step "Detecting exact node version..."
-
-    version_exact=$(nvx_node_version_checksums "${checksums_file}")
-
-    if [ ! -z "${version_exact}" ]; then
-      nvx_output_step_done "Done (${version_exact})"
-    else
-      nvx_output_step_error "Failed"
-      exit
-    fi
-
-    echo ""
-  fi
-
-  # Detect system os
-  nvx_output_step "Detecting system os..."
-  if [ ! -z "${system_os}" ]; then
-    nvx_output_step_done "Done (${system_os})"
-  else
-    nvx_output_step_error "Failed"
-    exit
-  fi
-
-  echo ""
-
-  # Detect system architecture
-  nvx_output_step "Detecting system architecture..."
-  if [ ! -z "${system_architecture}" ]; then
-    nvx_output_step_done "Done (${system_architecture})"
-  else
-    nvx_output_step_error "Failed"
-    exit  
-  fi
-
-  echo ""
-
-  # Create node artifact path
-  if ! [[ $(nvx_dir_exists "${nvx_node_artifact_path}") = true ]]; then
-    nvx_output_step "Creating ${nvx_node_artifact_path} directory..."
-
-    if [ $(nvx_dir_create "${nvx_node_artifact_path}") = true ]; then
-      nvx_output_step_done "Done"
-    else
-      nvx_output_step_error "Failed"
-      exit
-    fi
-
-    echo ""
-  fi
-
-  # Download node artifact
-  artifact_name="node-${version_exact}-${system_os}-${system_architecture}"
-  artifact_url="${dist_url}/${artifact_name}.tar.gz"
-  artifact_file="${nvx_node_artifact_path}/${version_exact}.tar.gz"
-
-  if [ ! -f "${artifact_file}" ]; then 
-    nvx_output_step "Downloading node artifact..."
-
-    if [ $(nvx_node_artifact_download "${artifact_url}" "${artifact_file}") = true ]; then
-      nvx_output_step_done "Done"
-    else
-      nvx_output_step_error "Failed"
-      exit
-    fi
-
-    echo ""
-  fi
-
-  # Create node binary path
-  if ! [[ $(nvx_dir_exists "${nvx_node_binary_path}") = true ]]; then
-    nvx_output_step "Creating ${nvx_node_binary_path} directory..."
-
-    if [ $(nvx_dir_create "${nvx_node_binary_path}") = true ]; then
-      nvx_output_step_done "Done"
-    else
-      nvx_output_step_error "Failed"
-      exit
-    fi
-
-    echo ""
-  fi
+  nvx_output_step "Creating ${nvx_node_path} directory..."
+  local create_node_path=$(nvx_dir_create "${nvx_node_path}")
   
-  # Extract node artifact to binary path
-  if [ ! -d "${binary_dir}" ]; then
-    nvx_output_step "Extracting ${artifact_file}..."
-
-    if [[ $(nvx_node_artifact_extract "${artifact_file}" "${artifact_name}" "${version_exact}") = true ]]; then
-      nvx_output_step_done "Done"
+  if [ "${create_node_path}" = "true" ]; then
+    nvx_output_step_done "Done"
+  else
+    if [ "${create_node_path}" = "already_exists" ]; then
+      nvx_output_step_done "Done (already exists)"
     else
       nvx_output_step_error "Failed"
-      exit
     fi
-
-    echo ""
   fi
+  echo ""
+  
+  local checksums_url="${download_url}/SHASUMS256.txt"
+  local checksums_file="${nvx_node_path}/SHASUMS256-${version}"
+  
+  # Download node checksums
+  nvx_output_step "Downloading node checksums..."
+  local download_node_checksums=$(nvx_url_download "${checksums_url}" "${checksums_file}")
+  
+  if [ "${download_node_checksums}" = "true" ]; then
+    nvx_output_step_done "Done"
+  else
+    if [ "${download_node_checksums}" = "already_exists" ]; then
+      nvx_output_step_done "Done (already exists)"
+    else
+      nvx_output_step_error "Failed"
+    fi
+  fi
+  echo ""
+  
+  # Detect node version
+  nvx_output_step "Detecting node version..."
+  local version_exact=$(nvx_node_detect_version_exact "${checksums_file}")
+  
+  if [ ! -z "${version_exact}" ]; then
+    nvx_output_step_done "Done (${version_exact})"
+  else
+    nvx_output_step_error "Failed"
+  fi
+  echo ""
+
+  local artifact_path="${nvx_node_path}/${version_exact}"
+  
+  # Create node artifact path
+  nvx_output_step "Creating ${artifact_path} directory..."
+  local create_node_artifact_path=$(nvx_dir_create "${artifact_path}")
+  
+  if [ "${create_node_artifact_path}" = "true" ]; then
+    nvx_output_step_done "Done"
+  else
+    if [ "${create_node_artifact_path}" = "already_exists" ]; then
+      nvx_output_step_done "Done (already exists)"
+    else
+      nvx_output_step_error "Failed"
+    fi
+  fi
+  echo ""
+
+  local artifact_name="node-${version_exact}-${platform}-${architecture}"
+  local artifact_file="${artifact_path}/${artifact_name}.tar.gz"
+  local artifact_url="${download_url}/${artifact_name}.tar.gz"
+  
+  # Download node artifact
+  nvx_output_step "Downloading node artifact..."
+  local download_node_artifact=$(nvx_url_download "${artifact_url}" "${artifact_file}")
+  
+  if [ "${download_node_artifact}" = "true" ]; then
+    nvx_output_step_done "Done"
+  else
+    if [ "${download_node_artifact}" = "already_exists" ]; then
+      nvx_output_step_done "Done (already exists)"
+    else
+      nvx_output_step_error "Failed"
+    fi
+  fi
+  echo ""
+
+  # Extract node artifact
+  nvx_output_step "Extacting node artifact..."
+  local extract_node_artifact=$(nvx_extract "${artifact_file}" "${artifact_path}")
+  
+  if [ "${extract_node_artifact}" = "true" ]; then
+    nvx_output_step_done "Done"
+  else
+    if [ "${extract_node_artifact}" = "already_exists" ]; then
+      nvx_output_step_done "Done (already exists)"
+    else
+      nvx_output_step_error "Failed"
+    fi
+  fi
+  echo ""
+
+  # Move node extract
+  nvx_output_step "Moving extracted files..."
+  local move_node_extract=$(nvx_dir_move "${artifact_path}/${artifact_name}" "${artifact_path}/node")
+  
+  if [ "${move_node_extract}" = "true" ]; then
+    nvx_output_step_done "Done"
+  else
+    if [ "${move_node_extract}" = "already_exists" ]; then
+      nvx_output_step_done "Done (already exists)"
+    else
+      nvx_output_step_error "Failed"
+    fi
+  fi
+  echo ""
+
+  # Activate node
+  nvx_output_step "Activating node..."
+  local store_node_reference=$(nvx_node_reference_store "${artifact_path}/node/bin")
+  
+  if [ "${store_node_reference}" = "true" ]; then
+    nvx_output_step_done "Node ${version} is ready to use!"
+  else
+    nvx_output_step_error "Failed"
+  fi
+  echo ""
 }
