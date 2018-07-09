@@ -19,7 +19,7 @@ source "nvx/src/output.sh"
 
 nvx_install() {
   local bashrc_file="${HOME}/.bashrc"
-  local nvx_content="${nvx_path}/bashrc.sh"
+  local nvx_content="${nvx_path}/src/bashrc.sh"
   local nvx_exists=$(grep -E '# >>>>> nvx >>>>> #' "${bashrc_file}")
 
   if [ -z "${nvx_exists}" ]; then
@@ -44,7 +44,7 @@ nvx_install() {
 
 nvx_uninstall() {
   local bashrc_file="${HOME}/.bashrc"
-  local nvx_content="${nvx_path}/bashrc.sh"
+  local nvx_content="${nvx_path}/src/bashrc.sh"
   local nvx_exists=$(grep -E '# >>>>> nvx >>>>> #' "${bashrc_file}")
 
   nvx_output_step "Uninstalling nvx..."
