@@ -3,8 +3,14 @@ nvx is a tool used to run a contained node version within a project folder.
 
 ## Getting started
 ```bash
+# Clone nvx to your project path
+git clone https://github.com/johanwestling/nvx.git
+
 # Install nvx
-bash .nvx/nvx.sh --install
+bash nvx/nvx.sh --install
+
+# Run nvx to see available commands
+nvx
 ```
 
 ## Usage
@@ -30,5 +36,5 @@ nvx --node
 ## Uninstall
 ```bash
 # Uninstall nvx
-bash .nvx/nvx.sh --uninstall
+bash nvx/nvx.sh --uninstall
 ```

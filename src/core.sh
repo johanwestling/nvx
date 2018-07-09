@@ -7,11 +7,11 @@
 nvx_log="${nvx_path}/nvx.log"
 
 # Paths
-nvx_path=".nvx"
+nvx_path="nvx"
 nvx_node_path="${nvx_path}/node"
 nvx_node_reference="${nvx_node_path}/reference"
 
-source ".nvx/output.sh"
+source "nvx/src/output.sh"
 
 #
 #  Core - Install
@@ -56,7 +56,7 @@ nvx_uninstall() {
   else
     nvx_output_step_error "Already uninstalled"
   fi
-  
+
   exec bash
 }
 
@@ -123,7 +123,7 @@ nvx_url_download() {
 nvx_extract() {
   local file=$1
   local directory=$2
-  
+
   if [ $(ls -afq "${directory}" | wc -l) -lt 4 ]; then
     if tar -xvf "${file}" -C "${directory}" >> $nvx_log 2>&1; then
       echo "true"
@@ -227,7 +227,7 @@ nvx_node_install() {
   # Create node path
   nvx_output_step "Creating ${nvx_node_path} directory..."
   local create_node_path=$(nvx_dir_create "${nvx_node_path}")
-  
+
   if [ "${create_node_path}" = "true" ]; then
     nvx_output_step_done "Done"
   else
@@ -238,14 +238,14 @@ nvx_node_install() {
     fi
   fi
   echo ""
-  
+
   local checksums_url="${download_url}/SHASUMS256.txt"
   local checksums_file="${nvx_node_path}/SHASUMS256-${version}"
-  
+
   # Download node checksums
   nvx_output_step "Downloading node checksums..."
   local download_node_checksums=$(nvx_url_download "${checksums_url}" "${checksums_file}")
-  
+
   if [ "${download_node_checksums}" = "true" ]; then
     nvx_output_step_done "Done"
   else
@@ -256,11 +256,11 @@ nvx_node_install() {
     fi
   fi
   echo ""
-  
+
   # Detect node version
   nvx_output_step "Detecting node version..."
   local version_exact=$(nvx_node_detect_version_exact "${checksums_file}")
-  
+
   if [ ! -z "${version_exact}" ]; then
     nvx_output_step_done "Done (${version_exact})"
   else
@@ -269,11 +269,11 @@ nvx_node_install() {
   echo ""
 
   local artifact_path="${nvx_node_path}/${version_exact}"
-  
+
   # Create node artifact path
   nvx_output_step "Creating ${artifact_path} directory..."
   local create_node_artifact_path=$(nvx_dir_create "${artifact_path}")
-  
+
   if [ "${create_node_artifact_path}" = "true" ]; then
     nvx_output_step_done "Done"
   else
@@ -288,11 +288,11 @@ nvx_node_install() {
   local artifact_name="node-${version_exact}-${platform}-${architecture}"
   local artifact_file="${artifact_path}/${artifact_name}.tar.gz"
   local artifact_url="${download_url}/${artifact_name}.tar.gz"
-  
+
   # Download node artifact
   nvx_output_step "Downloading node artifact..."
   local download_node_artifact=$(nvx_url_download "${artifact_url}" "${artifact_file}")
-  
+
   if [ "${download_node_artifact}" = "true" ]; then
     nvx_output_step_done "Done"
   else
@@ -307,7 +307,7 @@ nvx_node_install() {
   # Extract node artifact
   nvx_output_step "Extacting node artifact..."
   local extract_node_artifact=$(nvx_extract "${artifact_file}" "${artifact_path}")
-  
+
   if [ "${extract_node_artifact}" = "true" ]; then
     nvx_output_step_done "Done"
   else
@@ -322,7 +322,7 @@ nvx_node_install() {
   # Move node extract
   nvx_output_step "Moving extracted files..."
   local move_node_extract=$(nvx_dir_move "${artifact_path}/${artifact_name}" "${artifact_path}/node")
-  
+
   if [ "${move_node_extract}" = "true" ]; then
     nvx_output_step_done "Done"
   else
@@ -337,7 +337,7 @@ nvx_node_install() {
   # Activate node
   nvx_output_step "Activating node..."
   local store_node_reference=$(nvx_node_reference_store "${artifact_path}/node/bin")
-  
+
   if [ "${store_node_reference}" = "true" ]; then
     nvx_output_step_done "Node ${version} is ready to use!"
   else
