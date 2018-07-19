@@ -19,10 +19,10 @@ nvx
 ## Usage
 ```bash
 # Instals node (latest version) in project folder.
-nvx --node
+nvx --enable
 
 # Installs node (v8.x.x) in project folder.
-nvx --node="8.x"
+nvx --enable="8.x"
 ```
 
 Change to your desired node version. [See available versions at https://nodejs.org/dist/](https://nodejs.org/dist/)
@@ -33,7 +33,7 @@ Change to your desired node version. [See available versions at https://nodejs.o
 echo "node_version=8.x" > ".nvxrc"
 
 # Installs node (v8.x.x based on .nvxrc variable) in project folder.
-nvx --node
+nvx --enable
 ```
 
 ## Uninstall
