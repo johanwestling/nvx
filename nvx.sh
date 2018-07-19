@@ -28,15 +28,11 @@ if [ ! -z "${nvx_version_node}" ] || [ -z "${nvx_flag}" ]; then
 fi
 
 if [ "${nvx_flag}" = "install" ]; then
-  echo "install"
   nvx_install
 elif [ "${nvx_flag}" = "uninstall" ]; then
-  echo "uninstall"
   nvx_uninstall
 elif [ "${nvx_flag}" = "enable" ]; then
-  echo "enable"
   nvx_node_install $nvx_version_node
 else
-  echo "help"
   nvx_help $nvx_version_node
 fi
