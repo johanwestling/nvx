@@ -1,7 +1,7 @@
 source "nvx/src/core.sh"
 
 nvx_flag=""
-nvx_version="1.0.0"
+nvx_version="1.0.1"
 nvx_version_node=""
 
 while [ $# -gt 0 ]; do
