@@ -36,7 +36,7 @@ nvx_output_color_background_magenta="\033[45m"
 nvx_output_color_background_cyan="\033[46m"
 
 # Boxes
-nvx_output_box_color_foreground="${nvx_output_color_foreground_magenta}"
+nvx_output_box_color_foreground="${nvx_output_color_foreground_red}"
 nvx_output_box_horizontal="━"
 nvx_output_box_vertical="┃"
 nvx_output_box_top_left="┏"
@@ -47,13 +47,13 @@ nvx_output_box_separator="╌"
 
 # Steps
 nvx_output_step_prefix="−→ "
-nvx_output_step_prefix_color_foreground="${nvx_output_color_foreground_magenta}"
+nvx_output_step_prefix_color_foreground="${nvx_output_color_foreground_red}"
 nvx_output_step_done_prefix=" › "
 nvx_output_step_error_prefix=" ! "
 
 # Separators
 nvx_output_separator="╌"
-nvx_output_separator_color_foreground="${nvx_output_color_foreground_magenta}"
+nvx_output_separator_color_foreground="${nvx_output_color_foreground_red}"
 
 #
 #  Output - Boxes
