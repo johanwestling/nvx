@@ -39,5 +39,5 @@ nvx --enable
 ## Uninstall
 ```bash
 # Uninstall nvx
-bash nvx/nvx.sh --uninstall
+nvx --uninstall
 ```
