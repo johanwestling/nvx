@@ -1,55 +1,38 @@
 source "nvx/src/core.sh"
 
-nvx_flag_install=""
-nvx_flag_uninstall=""
-nvx_flag_node_version=""
+nvx_flag=""
+nvx_version="1.0.1"
+nvx_version_node=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --install*)
-      # Capture install flag
-      nvx_flag_install=true
+      nvx_flag="install"
       ;;
     --uninstall*)
-      # Capture uninstall flag
-      nvx_flag_uninstall=true
+      nvx_flag="uninstall"
       ;;
-    --node=*)
-      # Capture node flag with specific version
-      nvx_flag_node_version=$(echo "${1}" | cut -d "=" -f2)
+    --enable=*)
+      nvx_flag="enable"
+      nvx_version_node=$(echo "${1}" | cut -d "=" -f2)
       ;;
-    --node*)
-      # Capture node flag without defined version
-      nvx_flag_node_version="latest"
+    --enable*)
+      nvx_flag="enable"
       ;;
   esac
   shift
 done
 
-if [ "$nvx_flag_uninstall" = true ]; then
-  nvx_uninstall
+if [ ! -z "${nvx_version_node}" ] || [ -z "${nvx_flag}" ]; then
+  nvx_version_node=$(nvx_node_detect_version $nvx_version_node)
 fi
 
-if [ "$nvx_flag_install" = true ]; then
+if [ "${nvx_flag}" = "install" ]; then
   nvx_install
-fi
-
-nvx_node_version=$(nvx_node_detect_version $nvx_flag_node_version)
-
-echo ""
-
-nvx_output_box_start
-nvx_output_box_text "NVX" --style="bright"
-nvx_output_box_separator
-nvx_output_box_text "Version:            v0.0.3"
-nvx_output_box_text "Author:             Johan Westling"
-nvx_output_box_separator
-nvx_output_box_text "Node version:       ${nvx_node_version}"
-nvx_output_box_stop
-
-echo ""
-
-if [ ! -f "${nvx_node_binary_path}/${nvx_node_version}" ]; then
-  # Install required node version
-  nvx_node_install $nvx_node_version
+elif [ "${nvx_flag}" = "uninstall" ]; then
+  nvx_uninstall
+elif [ "${nvx_flag}" = "enable" ]; then
+  nvx_node_install $nvx_version_node
+else
+  nvx_help $nvx_version_node
 fi

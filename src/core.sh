@@ -4,14 +4,37 @@
 #  Core
 #
 
-nvx_log="${nvx_path}/nvx.log"
-
 # Paths
 nvx_path="nvx"
 nvx_node_path="${nvx_path}/node"
 nvx_node_reference="${nvx_node_path}/reference"
 
+# Logs
+nvx_log="${nvx_path}/nvx.log"
+
 source "nvx/src/output.sh"
+
+#
+#  Core - Help
+#
+
+nvx_help() {
+  local version=$1
+
+  nvx_output_box_start
+  nvx_output_box_text "NVX v${nvx_version}" --style="bright"
+  nvx_output_box_separator
+  nvx_output_box_text "Author:                  Johan Westling"
+  nvx_output_box_text "Node:                    ${version}"
+  nvx_output_box_text ""
+  nvx_output_box_text "Available commands" --style="bright"
+  nvx_output_box_separator
+  nvx_output_box_text "nvx --enable             Installs latest node version"
+  nvx_output_box_text "nvx --enable='v8.x'      Installs latest node 8 version"
+  nvx_output_box_text "nvx --install            (Re)Installs global nvx commands"
+  nvx_output_box_text "nvx --uninstall          Uninstalls global nvx commands"
+  nvx_output_box_stop
+}
 
 #
 #  Core - Install
@@ -21,6 +44,14 @@ nvx_install() {
   local bashrc_file="${HOME}/.bashrc"
   local nvx_content="${nvx_path}/src/bashrc.sh"
   local nvx_exists=$(grep -E '# >>>>> nvx >>>>> #' "${bashrc_file}")
+  
+  nvx_output_box_start
+  nvx_output_box_text "NVX v${nvx_version}" --style="bright"
+  nvx_output_box_separator
+  nvx_output_box_text "Author:                  Johan Westling"
+  nvx_output_box_stop
+
+  echo ""
 
   if [ -z "${nvx_exists}" ]; then
     # Install nvx to .bashrc
@@ -34,6 +65,8 @@ nvx_install() {
     cat "${nvx_content}" >> "${bashrc_file}"
     nvx_output_step_done "Updated!"
   fi
+  
+  echo ""
 
   exec bash
 }
@@ -47,6 +80,14 @@ nvx_uninstall() {
   local nvx_content="${nvx_path}/src/bashrc.sh"
   local nvx_exists=$(grep -E '# >>>>> nvx >>>>> #' "${bashrc_file}")
 
+  nvx_output_box_start
+  nvx_output_box_text "NVX v${nvx_version}" --style="bright"
+  nvx_output_box_separator
+  nvx_output_box_text "Author:                  Johan Westling"
+  nvx_output_box_stop
+
+  echo ""
+
   nvx_output_step "Uninstalling nvx..."
 
   if [ ! -z "${nvx_exists}" ]; then
@@ -56,6 +97,8 @@ nvx_uninstall() {
   else
     nvx_output_step_error "Already uninstalled"
   fi
+  
+  echo ""
 
   exec bash
 }
@@ -142,13 +185,23 @@ nvx_extract() {
 nvx_node_detect_version() {
   local version=$1
   local file="${PWD}/.nvxrc"
+  local reference="${nvx_path}/node/reference"
 
+  # Detect from .nvxrc file
   if [ -z "${version}" ]; then
     if [ -f "${file}" ]; then
       version=$(grep -E 'node_version=[0-9].*' "${file}" | cut -d "=" -f2)
     fi
   fi
 
+  # Detect from reference file
+  if [ -z "${version}" ]; then
+    if [ -f "${reference}" ]; then
+      version=$(cat "${reference}" | sed 's/^.*\(v[0-9]*\.[0-9]*\.[0-9]*\).*$/\1/' | head -n 1)
+    fi
+  fi
+
+  # Default to latest
   if [ -z "${version}" ]; then
     version="latest"
   fi
@@ -224,6 +277,15 @@ nvx_node_install() {
   # Reset log file
   echo -n "" > $nvx_log
 
+  nvx_output_box_start
+  nvx_output_box_text "NVX v${nvx_version}" --style="bright"
+  nvx_output_box_separator
+  nvx_output_box_text "Author:                  Johan Westling"
+  nvx_output_box_text "Node:                    ${version}"
+  nvx_output_box_stop
+
+  echo ""
+
   # Create node path
   nvx_output_step "Creating ${nvx_node_path} directory..."
   local create_node_path=$(nvx_dir_create "${nvx_node_path}")
@@ -237,6 +299,7 @@ nvx_node_install() {
       nvx_output_step_error "Failed"
     fi
   fi
+  
   echo ""
 
   local checksums_url="${download_url}/SHASUMS256.txt"
@@ -255,6 +318,7 @@ nvx_node_install() {
       nvx_output_step_error "Failed"
     fi
   fi
+  
   echo ""
 
   # Detect node version
@@ -266,6 +330,7 @@ nvx_node_install() {
   else
     nvx_output_step_error "Failed"
   fi
+  
   echo ""
 
   local artifact_path="${nvx_node_path}/${version_exact}"
@@ -283,6 +348,7 @@ nvx_node_install() {
       nvx_output_step_error "Failed"
     fi
   fi
+  
   echo ""
 
   local artifact_name="node-${version_exact}-${platform}-${architecture}"
@@ -302,6 +368,7 @@ nvx_node_install() {
       nvx_output_step_error "Failed"
     fi
   fi
+  
   echo ""
 
   # Extract node artifact
@@ -317,6 +384,7 @@ nvx_node_install() {
       nvx_output_step_error "Failed"
     fi
   fi
+  
   echo ""
 
   # Move node extract
@@ -332,6 +400,7 @@ nvx_node_install() {
       nvx_output_step_error "Failed"
     fi
   fi
+  
   echo ""
 
   # Activate node
@@ -343,5 +412,6 @@ nvx_node_install() {
   else
     nvx_output_step_error "Failed"
   fi
+  
   echo ""
 }

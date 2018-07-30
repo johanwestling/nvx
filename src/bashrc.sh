@@ -1,5 +1,10 @@
 # >>>>> nvx >>>>> #
 
+nvx_bash_output_style_default="\033[0m"
+nvx_bash_output_style_bright="\033[1m"
+nvx_bash_output_foreground_default="\033[39;49m"
+nvx_bash_output_foreground_red="\033[31;49m"
+
 node() {
   local binary_path=$(nvx_binary_path)
   local binary_name="node"
@@ -31,7 +36,7 @@ nvx() {
   if [ -f "${nvx_script}" ]; then
     eval "${nvx_script} ${nvx_args}"
   else
-    echo -e "\033[35m ! \033[39;49m\033[1mNo nvx in this directory...\033[0m"
+    echo -e " ${nvx_bash_output_foreground_red}!${nvx_bash_output_foreground_default} ${nvx_bash_output_style_bright}No nvx in this directory...${nvx_bash_output_style_default}"
     echo -e "   Please cd to the directory that contains the nvx folder (usually project root)."
   fi
 }
@@ -62,7 +67,7 @@ nvx_binary_execute() {
 
   PATH="${PATH}:${binary_path}"
 
-  echo -e "\033[35m−→ \033[39;49m${binary} ${binary_args}"
+  echo -e "${nvx_bash_output_foreground_red}−→${nvx_bash_output_foreground_default} ${binary} ${binary_args}"
   eval "${binary} ${binary_args}"
 }
 
