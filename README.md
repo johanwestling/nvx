@@ -1,5 +1,5 @@
 # nvx
-nvx is a tool used to run a contained node version within a project folder.
+A tool used to run contained node versions within project folders.
 
 ## Prerequisites
 * Terminal with bash & git support
