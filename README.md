@@ -1,8 +1,4 @@
-<div style="text-align:center;">
-  <h1>
-    <img src="./docs/logo.png" alt="NVX" />
-  </h1>
-</div>
+![NVX](./docs/logo.png)
 
 A tool used to run contained node versions within project folders.
 
