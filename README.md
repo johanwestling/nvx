@@ -1,4 +1,4 @@
-# nvx
+![NVX logo](./docs/logo.png)
 A tool used to run contained node versions within project folders.
 
 ## Prerequisites
