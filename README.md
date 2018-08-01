@@ -1,6 +1,8 @@
-<h1 style="text-align:center;">
-  <img src="./docs/logo.png" alt="NVX" />
-</h1>
+<div style="text-align:center;">
+  <h1>
+    <img src="./docs/logo.png" alt="NVX" />
+  </h1>
+</div>
 
 A tool used to run contained node versions within project folders.
 
