@@ -30,7 +30,7 @@ nvx_help() {
   nvx_output_box_text "Available commands" --style="bright"
   nvx_output_box_separator
   nvx_output_box_text "nvx --enable             Installs latest node version"
-  nvx_output_box_text "nvx --enable='v8.x'      Installs latest node 8 version"
+  nvx_output_box_text "nvx --enable='8.x'       Installs latest node 8 version"
   nvx_output_box_text "nvx --install            (Re)Installs global nvx commands"
   nvx_output_box_text "nvx --uninstall          Uninstalls global nvx commands"
   nvx_output_box_stop
