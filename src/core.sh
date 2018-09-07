@@ -41,6 +41,7 @@ nvx_help() {
 #
 
 nvx_install() {
+  local bash_reload=$1
   local bashrc_file="${HOME}/.bashrc"
   local nvx_content="${nvx_path}/src/bashrc.sh"
   local nvx_exists=$(grep -E '# >>>>> nvx >>>>> #' "${bashrc_file}")
@@ -67,8 +68,10 @@ nvx_install() {
   fi
   
   echo ""
-
-  exec bash
+  
+  if [ ! -z "$bash_reload" ]; then
+    exec bash
+  fi
 }
 
 #
