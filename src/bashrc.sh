@@ -56,7 +56,7 @@ nvx_binary_path() {
     echo "${binary_path}"
   else
     # System default path
-    which "${binary_name}"
+    dirnmane $(which "${binary_name}")
   fi
 }
 
