@@ -6,24 +6,24 @@ nvx_bash_output_foreground_default="\033[39;49m"
 nvx_bash_output_foreground_red="\033[31;49m"
 
 node() {
-  local binary_path=$(nvx_binary_path)
   local binary_name="node"
+  local binary_path=$(nvx_binary_path "${binary_name}")
   local binary_args=${@}
 
   nvx_binary_execute "${binary_path}" "${binary_name}" ${binary_args}
 }
 
 npm() {
-  local binary_path=$(nvx_binary_path)
   local binary_name="npm"
+  local binary_path=$(nvx_binary_path "${binary_name}")
   local binary_args=${@}
 
   nvx_binary_execute "${binary_path}" "${binary_name}" ${binary_args}
 }
 
 npx() {
-  local binary_path=$(nvx_binary_path)
   local binary_name="npx"
+  local binary_path=$(nvx_binary_path "${binary_name}")
   local binary_args=${@}
 
   nvx_binary_execute "${binary_path}" "${binary_name}" ${binary_args}
@@ -42,6 +42,7 @@ nvx() {
 }
 
 nvx_binary_path() {
+  local binary_name=$1
   local binary_path=""
   local binary_reference="${PWD}/nvx/node/reference"
 
@@ -55,7 +56,7 @@ nvx_binary_path() {
     echo "${binary_path}"
   else
     # System default path
-    echo "/usr/bin"
+    which "${binary_name}"
   fi
 }
 
