@@ -1,14 +1,49 @@
 #!/bin/bash
 
-source "output.sh"
+source "${PWD}/install/helpers/output.sh"
 
-function nvx_install {
+function nvx_install_bins {
+  local bin_src_path="${PWD}/install/bin"
+  local bin_dest_path="${HOME}/.nvx/bin"
+
+  if [ ! -d "${bin_dest_path}" ]; then
+    mkdir -p "${bin_dest_path}"
+  fi
+
+  for bin_src_file in ${bin_src_path}/*.sh; do
+    local bin_dest_file=$(basename "${bin_src_file%\.*}")
+    local bin_dest_file="${bin_dest_path}/${bin_dest_file}"
+
+    \cp "${bin_src_file}" "${bin_dest_file}"
+    chmod +x "${bin_dest_file}"
+  done
+}
+
+function nvx_install_bashrc {
   local bashrc="${HOME}/.bashrc"
-  local nvx_before=$(cat "../bashrc/before.sh")
-  local nvx_after=$(cat "../bashrc/after.sh")
-  local is_installed=$(grep -E "${nvx_before}" "${bashrc}")
+  local nvx_before="#################### nvx -> ####################"
+  local nvx_after="#################### <- nvx ####################"
+  local nvx_content=$(cat "${PWD}/install/bashrc/content.sh")
+  local nvx_installed=$(grep -E "${nvx_before}" "${bashrc}")
 
-  echo "is_installed: ${is_installed}"
+  nvx_uninstall_legacy
+
+  if [ -n "${nvx_installed}" ]; then
+    sed -i "/${nvx_before}/,/${nvx_after}/d" "${bashrc}"
+  fi
+
+  echo "${nvx_content}" >> "${bashrc}"
+}
+
+function nvx_uninstall_legacy {
+  local bashrc="${HOME}/.bashrc"
+  local legacy_before="# >>>>> nvx >>>>> #"
+  local legacy_after="# <<<<< nvx <<<<< #"
+  local legacy_installed=$(grep -E "${legacy_before}" "${bashrc}")
+
+  if [ -n "${legacy_installed}" ]; then
+    sed -i "/${legacy_before}/,/${legacy_after}/d" "${bashrc}"
+  fi
 }
 
 function nvx_in_pwd {
