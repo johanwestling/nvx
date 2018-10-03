@@ -4,8 +4,8 @@ bin_args=${@:1}
 bin_path="${PWD}/nvx/interface/interface.sh"
 
 if [ ! -f "${bin_path}" ]; then
-  echo -e "nvx \033[33m→\033[39m No nvx in current directory."
-  echo -e "nvx \033[33m→\033[39m Navigate to a directory that contains the nvx folder."
+  echo -e " \033[31m→\033[39m Unable to find nvx in current directory."
+  echo -e "   \033[34m→\033[39m Install it with git clone git@github.com:johanwestling/nvx.git or navigate to a directory that contains nvx."
   exit
 fi
 
