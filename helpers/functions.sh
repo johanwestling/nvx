@@ -3,7 +3,7 @@
 source "${PWD}/nvx/helpers/output.sh"
 
 function nvx_install_bins {
-  local bin_src_path="${PWD}/install/bin"
+  local bin_src_path="${PWD}/nvx/install/bin"
   local bin_dest_path="${HOME}/.nvx/bin"
 
   if [ ! -d "${bin_dest_path}" ]; then
@@ -23,7 +23,7 @@ function nvx_install_bashrc {
   local bashrc="${HOME}/.bashrc"
   local nvx_before="#################### nvx -> ####################"
   local nvx_after="#################### <- nvx ####################"
-  local nvx_content=$(cat "${PWD}/install/bashrc/content.sh")
+  local nvx_content=$(cat "${PWD}/nvx/install/bashrc/content.sh")
   local nvx_installed=$(grep -E "${nvx_before}" "${bashrc}")
 
   nvx_uninstall_legacy
