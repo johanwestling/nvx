@@ -1,3 +1,4 @@
+cache/*
+!cache/.gitkeep
 node/*
 !node/.gitkeep
-nvx.log

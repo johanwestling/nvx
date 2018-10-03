@@ -21,5 +21,5 @@ else
   bin_path="${bin_global_path}"
 fi
 
-echo -e "> ${bin_name} \033[33m→\033[39m ${bin_path} ${bin_args}"
+echo -e "${bin_name} \033[33m→\033[39m ${bin_path} ${bin_args}"
 eval "${bin_path} ${bin_args}"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "${PWD}/install/helpers/functions.sh"
+source "${PWD}/helpers/functions.sh"
 
 nvx_install_bashrc
 nvx_install_bins
