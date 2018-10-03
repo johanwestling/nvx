@@ -19,7 +19,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [[ "${nvx_command}" = "help" ]]; then
-  echo -e "nvx \033[33m→\033[39m Display help text."
+  echo -e "Display help text..."
 fi
 
 if [[ "${nvx_command}" = "install" ]]; then

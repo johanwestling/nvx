@@ -9,5 +9,4 @@ if [ ! -f "${bin_path}" ]; then
   exit
 fi
 
-echo -e "nvx \033[33m→\033[39m ${bin_path} ${bin_args}"
 bash "${bin_path}" ${bin_args}

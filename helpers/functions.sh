@@ -65,31 +65,31 @@ function nvx_resource_extract {
   local resource_clean="${3}"
 
   if [ -d "${resource_directory}" ] && [ -n "${resource_clean}" ]; then
-    echo -e "    \033[33m→\033[39m Cleaning ${resource_directory}"
+    echo -e "  \033[33m→\033[39m Cleaning ${resource_directory}"
     rm -rf "${resource_directory}"
     if [ ! -d "${resource_directory}" ] || [ $(ls -afq "${directory}" | wc -l) -lt 4 ]; then
-      echo -e "       \033[32m●\033[39m Done"
+      echo -e "    \033[32m●\033[39m Done"
     else
-      echo -e "       \033[31m●\033[39m Fail"
+      echo -e "    \033[31m●\033[39m Fail"
     fi
   fi
 
   if [ ! -d "${resource_directory}" ]; then
-    echo -e "    \033[33m→\033[39m Creating ${resource_directory}"
+    echo -e "  \033[33m→\033[39m Creating ${resource_directory}"
     mkdir -p "${resource_directory}"
     if [ -d "${resource_directory}" ]; then
-      echo -e "       \033[32m●\033[39m Done"
+      echo -e "    \033[32m●\033[39m Done"
     else
-      echo -e "       \033[31m●\033[39m Fail"
+      echo -e "    \033[31m●\033[39m Fail"
     fi
   fi
 
   if [ -d "${resource_directory}" ]; then
-    echo -e "    \033[33m→\033[39m Extracting ${resource_file}"
+    echo -e "  \033[33m→\033[39m Extracting ${resource_file}"
     if tar -xvf "${resource_file}" -C "${resource_directory}" > /dev/null 2>&1; then
-      echo -e "       \033[32m●\033[39m Done"
+      echo -e "    \033[32m●\033[39m Done"
     else
-      echo -e "       \033[31m●\033[39m Fail"
+      echo -e "    \033[31m●\033[39m Fail"
     fi
   fi
 }
@@ -100,31 +100,31 @@ function nvx_resource_copy {
   local resource_clean="${3}"
 
   if [ -d "${resource_destination}" ] && [ -n "${resource_clean}" ]; then
-    echo -e "    \033[33m→\033[39m Cleaning ${resource_destination}"
+    echo -e "  \033[33m→\033[39m Cleaning ${resource_destination}"
     rm -rf "${resource_destination}"
     if [ ! -d "${resource_destination}" ] || [ $(ls -afq "${directory}" | wc -l) -lt 4 ]; then
-      echo -e "       \033[32m●\033[39m Done"
+      echo -e "    \033[32m●\033[39m Done"
     else
-      echo -e "       \033[31m●\033[39m Fail"
+      echo -e "    \033[31m●\033[39m Fail"
     fi
   fi
 
   if [ ! -d "${resource_destination}" ]; then
-    echo -e "    \033[33m→\033[39m Creating ${resource_destination}"
+    echo -e "  \033[33m→\033[39m Creating ${resource_destination}"
     mkdir -p "${resource_destination}"
     if [ -d "${resource_destination}" ]; then
-      echo -e "       \033[32m●\033[39m Done"
+      echo -e "    \033[32m●\033[39m Done"
     else
-      echo -e "       \033[31m●\033[39m Fail"
+      echo -e "    \033[31m●\033[39m Fail"
     fi
   fi
 
   if [ -d "${resource_destination}" ]; then
-    echo -e "    \033[33m→\033[39m Copying ${resource_source}"
+    echo -e "  \033[33m→\033[39m Copying ${resource_source}"
     if \cp -a "${resource_source}/." "${resource_destination}" > /dev/null 2>&1; then
-      echo -e "       \033[32m●\033[39m Done"
+      echo -e "    \033[32m●\033[39m Done"
     else
-      echo -e "       \033[31m●\033[39m Fail"
+      echo -e "    \033[31m●\033[39m Fail"
     fi
   fi
 }
@@ -187,36 +187,36 @@ function nvx_node_install {
   local node_archive_file=""
   local node_archive_extract="${node_cache_path}/extract"
 
-  echo -e "nvx \033[33m→\033[39m Installing node (${node_version})"
+  echo -e " \033[33m→\033[39m Installing node (${node_version})"
 
   if [[ "${node_version}" != "latest" ]]; then
     node_url="${node_url}-v${node_version}"
   fi
 
-  echo -e "    \033[33m→\033[39m Downloading ${node_url}/SHASUMS256.txt"
+  echo -e "  \033[33m→\033[39m Downloading ${node_url}/SHASUMS256.txt"
   if [[ $(nvx_resource_download "${node_url}/SHASUMS256.txt" "${node_cache_shasum}") = 200 ]]; then
     node_version_exact=$(nvx_node_detect_version_exact "${node_cache_shasum}")
-    echo -e "       \033[32m●\033[39m Done"
+    echo -e "    \033[32m●\033[39m Done"
   else
-    echo -e "       \033[31m●\033[39m Fail"
+    echo -e "    \033[31m●\033[39m Fail"
   fi
 
-  echo -e "    \033[33m→\033[39m Detecting exact node version"
+  echo -e "  \033[33m→\033[39m Detecting exact node version"
   if [ -n "${node_version_exact}" ] && [ -n "${node_platform}" ] && [ -n "${node_architecture}" ]; then
-    echo -e "       \033[32m●\033[39m Done (${node_version_exact})"
+    echo -e "    \033[32m●\033[39m Done (${node_version_exact})"
     node_archive="node-v${node_version_exact}-${node_platform}-${node_architecture}"
     node_archive_url="${node_url}/${node_archive}.tar.gz"
     node_archive_file="${node_cache_path}/${node_archive}.tar.gz"
   else
-    echo -e "       \033[31m●\033[39m Fail"
+    echo -e "    \033[31m●\033[39m Fail"
   fi
 
   if [ -n "${node_archive_url}" ] && [ -n "${node_archive_file}" ]; then
-    echo -e "    \033[33m→\033[39m Downloading ${node_archive_url}"
+    echo -e "  \033[33m→\033[39m Downloading ${node_archive_url}"
     if [[ $(nvx_resource_download "${node_archive_url}" "${node_archive_file}") = 200 ]]; then
-      echo -e "       \033[32m●\033[39m Done"
+      echo -e "    \033[32m●\033[39m Done"
     else
-      echo -e "       \033[31m●\033[39m Fail"
+      echo -e "    \033[31m●\033[39m Fail"
     fi
   fi
 
