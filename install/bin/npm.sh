@@ -24,4 +24,4 @@ fi
 echo -e " \033[33m→\033[39m ${bin_name} = ${bin_path} ${bin_args}"
 echo -e ""
 
-eval "${bin_path} ${bin_args}"
+eval "${bin_path} ${bin_args} --scripts-prepend-node-path"
