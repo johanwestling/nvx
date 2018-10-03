@@ -23,4 +23,5 @@ fi
 
 echo -e "${bin_name} \033[33m→\033[39m ${bin_path} ${bin_args}"
 echo -e ""
+
 eval "${bin_path} ${bin_args}"
