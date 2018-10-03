@@ -23,7 +23,5 @@ if [[ "${nvx_command}" = "help" ]]; then
 fi
 
 if [[ "${nvx_command}" = "install" ]]; then
-  echo -e "nvx \033[33m→\033[39m Install node ${node_version}."
-
-	nvx_node_download "${node_version}"
+	nvx_node_install "${node_version}"
 fi

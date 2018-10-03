@@ -46,7 +46,7 @@ function nvx_uninstall_legacy {
   fi
 }
 
-function nvx_download_resource {
+function nvx_resource_download {
   local url="${1}"
   local file="${2}"
 
@@ -55,6 +55,76 @@ function nvx_download_resource {
       curl -s -L -w '%{http_code}' "${url}" -o "${file}"
     else
       curl -s -L "${url}"
+    fi
+  fi
+}
+
+function nvx_resource_extract {
+  local resource_file="${1}"
+  local resource_directory="${2}"
+  local resource_clean="${3}"
+
+  if [ -d "${resource_directory}" ] && [ -n "${resource_clean}" ]; then
+    echo -e "    \033[33m→\033[39m Cleaning ${resource_directory}"
+    rm -rf "${resource_directory}"
+    if [ ! -d "${resource_directory}" ] || [ $(ls -afq "${directory}" | wc -l) -lt 4 ]; then
+      echo -e "       \033[32m●\033[39m Done"
+    else
+      echo -e "       \033[31m●\033[39m Fail"
+    fi
+  fi
+
+  if [ ! -d "${resource_directory}" ]; then
+    echo -e "    \033[33m→\033[39m Creating ${resource_directory}"
+    mkdir -p "${resource_directory}"
+    if [ -d "${resource_directory}" ]; then
+      echo -e "       \033[32m●\033[39m Done"
+    else
+      echo -e "       \033[31m●\033[39m Fail"
+    fi
+  fi
+
+  if [ -d "${resource_directory}" ]; then
+    echo -e "    \033[33m→\033[39m Extracting ${resource_file}"
+    if tar -xvf "${resource_file}" -C "${resource_directory}" > /dev/null 2>&1; then
+      echo -e "       \033[32m●\033[39m Done"
+    else
+      echo -e "       \033[31m●\033[39m Fail"
+    fi
+  fi
+}
+
+function nvx_resource_copy {
+  local resource_source="${1}"
+  local resource_destination="${2}"
+  local resource_clean="${3}"
+
+  if [ -d "${resource_destination}" ] && [ -n "${resource_clean}" ]; then
+    echo -e "    \033[33m→\033[39m Cleaning ${resource_destination}"
+    rm -rf "${resource_destination}"
+    if [ ! -d "${resource_destination}" ] || [ $(ls -afq "${directory}" | wc -l) -lt 4 ]; then
+      echo -e "       \033[32m●\033[39m Done"
+    else
+      echo -e "       \033[31m●\033[39m Fail"
+    fi
+  fi
+
+  if [ ! -d "${resource_destination}" ]; then
+    echo -e "    \033[33m→\033[39m Creating ${resource_destination}"
+    mkdir -p "${resource_destination}"
+    if [ -d "${resource_destination}" ]; then
+      echo -e "       \033[32m●\033[39m Done"
+    else
+      echo -e "       \033[31m●\033[39m Fail"
+    fi
+  fi
+
+  if [ -d "${resource_destination}" ]; then
+    echo -e "    \033[33m→\033[39m Copying ${resource_source}"
+    if \cp -a "${resource_source}/." "${resource_destination}" > /dev/null 2>&1; then
+      echo -e "       \033[32m●\033[39m Done"
+    else
+      echo -e "       \033[31m●\033[39m Fail"
     fi
   fi
 }
@@ -103,10 +173,11 @@ function nvx_node_detect_architecture {
   esac
 }
 
-function nvx_node_download {
+function nvx_node_install {
   local node_version="${1:-latest}"
   local node_version_exact=""
   local node_url="https://nodejs.org/dist/latest"
+  local node_path="${PWD}/nvx/node"
   local node_cache_path="${PWD}/nvx/cache"
   local node_cache_shasum="${node_cache_path}/SHASUMS256-${node_version}.txt"
   local node_platform=$(nvx_node_detect_platform)
@@ -114,35 +185,43 @@ function nvx_node_download {
   local node_archive=""
   local node_archive_url=""
   local node_archive_file=""
+  local node_archive_extract="${node_cache_path}/extract"
+
+  echo -e "nvx \033[33m→\033[39m Installing node (${node_version})"
 
   if [[ "${node_version}" != "latest" ]]; then
     node_url="${node_url}-v${node_version}"
   fi
 
-  echo -e "nvx \033[33m→\033[39m Downloading ${node_url}/SHASUMS256.txt"
-  if [[ $(nvx_download_resource "${node_url}/SHASUMS256.txt" "${node_cache_shasum}") = 200 ]]; then
+  echo -e "    \033[33m→\033[39m Downloading ${node_url}/SHASUMS256.txt"
+  if [[ $(nvx_resource_download "${node_url}/SHASUMS256.txt" "${node_cache_shasum}") = 200 ]]; then
     node_version_exact=$(nvx_node_detect_version_exact "${node_cache_shasum}")
-    echo -e "    \033[32m●\033[39m Done"
+    echo -e "       \033[32m●\033[39m Done"
   else
-    echo -e "    \033[33m●\033[39m Fail"
+    echo -e "       \033[31m●\033[39m Fail"
   fi
 
-  echo -e "nvx \033[33m→\033[39m Detecting exact node version"
+  echo -e "    \033[33m→\033[39m Detecting exact node version"
   if [ -n "${node_version_exact}" ] && [ -n "${node_platform}" ] && [ -n "${node_architecture}" ]; then
-    echo -e "    \033[32m●\033[39m Done (${node_version_exact})"
-    node_archive="node-v${node_version_exact}-${node_platform}-${node_architecture}.tar.gz"
-    node_archive_url="${node_url}/${node_archive}"
-    node_archive_file="${node_cache_path}/${node_archive}"
+    echo -e "       \033[32m●\033[39m Done (${node_version_exact})"
+    node_archive="node-v${node_version_exact}-${node_platform}-${node_architecture}"
+    node_archive_url="${node_url}/${node_archive}.tar.gz"
+    node_archive_file="${node_cache_path}/${node_archive}.tar.gz"
   else
-    echo -e "    \033[33m●\033[39m Fail"
+    echo -e "       \033[31m●\033[39m Fail"
   fi
 
   if [ -n "${node_archive_url}" ] && [ -n "${node_archive_file}" ]; then
-    echo -e "nvx \033[33m→\033[39m Downloading ${node_archive_url}"
-    if [[ $(nvx_download_resource "${node_archive_url}" "${node_archive_file}") = 200 ]]; then
-      echo -e "    \033[32m●\033[39m Done"
+    echo -e "    \033[33m→\033[39m Downloading ${node_archive_url}"
+    if [[ $(nvx_resource_download "${node_archive_url}" "${node_archive_file}") = 200 ]]; then
+      echo -e "       \033[32m●\033[39m Done"
     else
-      echo -e "    \033[33m●\033[39m Fail"
+      echo -e "       \033[31m●\033[39m Fail"
     fi
+  fi
+
+  if [ -n "${node_archive}" ] && [ -f "${node_archive_file}" ]; then
+    nvx_resource_extract "${node_archive_file}" "${node_archive_extract}" true
+    nvx_resource_copy "${node_archive_extract}/${node_archive}" "${node_path}" true
   fi
 }
