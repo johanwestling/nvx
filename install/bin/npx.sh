@@ -24,7 +24,7 @@ fi
 
 if [ -n "${bin_path}" ]; then
   echo -e " \033[33m→\033[39m Running: ${bin_path} ${bin_args}"
-  ${bin_path} ${bin_args}
+  ${bin_path} ${bin_args} --scripts-prepend-node-path
 else
   echo -e " \033[31m→\033[39m Unable to find ${bin_name}. Is it installed?"
 fi
