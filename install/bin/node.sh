@@ -10,9 +10,10 @@ bin_global_path=""
 
 if [ -f "${bin_local}" ]; then
   bin_local_path="${bin_local}"
-else
-  bin_global_path=$(dirname "${bin_global}")
-  bin_global_path="${bin_global_path}/${bin_name}"
+fi
+
+if [ -f "${bin_global}" ]; then
+  bin_global_path="$(dirname "${bin_global}")/${bin_name}"
 fi
 
 if [ -n "${bin_local_path}" ]; then
@@ -21,7 +22,9 @@ else
   bin_path="${bin_global_path}"
 fi
 
-echo -e " \033[33m→\033[39m ${bin_name} = ${bin_path} ${bin_args}"
-echo -e ""
-
-eval "${bin_path} ${bin_args}"
+if [ -n "${bin_path}" ]; then
+  echo -e " \033[33m→\033[39m Running: ${bin_path} ${bin_args}"
+  eval "${bin_path} ${bin_args}"
+else
+  echo -e " \033[31m→\033[39m Unable to find ${bin_name}. Is it installed?"
+fi
