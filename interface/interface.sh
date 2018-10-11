@@ -19,7 +19,14 @@ while [ $# -gt 0 ]; do
 done
 
 if [[ "${nvx_command}" = "help" ]]; then
-  echo -e "Display help text..."
+	nvx_box_top
+  nvx_box_head "NVX"
+  nvx_box_head "Command:                      Description:" false
+  nvx_box_text "nvx                           Display this help section."
+  nvx_box_text "nvx --enable                  Enable latest version of node." false
+  nvx_box_text "nvx --enable=\"8.x\"            Enable latest version of node 8."
+  nvx_box_text "See available node versions at: https://nodejs.org/dist/"
+	nvx_box_bottom
 fi
 
 if [[ "${nvx_command}" = "install" ]]; then
