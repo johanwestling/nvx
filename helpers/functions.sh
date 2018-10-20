@@ -19,8 +19,9 @@ function nvx_install_bins {
   done
 }
 
-function nvx_install_bashrc {
+function nvx_update_bashrc {
   local bashrc="${HOME}/.bashrc"
+  local nvx_uninstall="${1}"
   local nvx_before="#################### nvx -> ####################"
   local nvx_after="#################### <- nvx ####################"
   local nvx_content=$(cat "${PWD}/nvx/install/bashrc/content.sh")
@@ -32,7 +33,9 @@ function nvx_install_bashrc {
     sed -i "/${nvx_before}/,/${nvx_after}/d" "${bashrc}"
   fi
 
-  echo "${nvx_content}" >> "${bashrc}"
+  if [ -z "${nvx_uninstall}" ]; then
+    echo "${nvx_content}" >> "${bashrc}"
+  fi
 }
 
 function nvx_uninstall_legacy {
