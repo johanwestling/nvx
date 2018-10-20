@@ -11,7 +11,7 @@ A tool used to run contained node versions within project folders.
 git clone https://github.com/johanwestling/nvx.git
 
 # Install nvx
-bash nvx/nvx.sh --install
+bash nvx/install/install.sh
 
 # Run nvx to see available commands
 nvx
