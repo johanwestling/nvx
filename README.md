@@ -1,6 +1,6 @@
 ![NVX](./docs/logo.png)
 
-A tool used to run contained node versions within project folders.
+NVX enables you to run a contained version of Node.js within a project directory.
 
 ## Prerequisites
 * Terminal with bash & git support
