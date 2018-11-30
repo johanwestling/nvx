@@ -4,6 +4,7 @@ NVX enables you to run a contained version of Node.js within a project directory
 
 ## Prerequisites
 * Terminal with bash & git support
+  * Windows: [https://github.com/johanwestling/wsl-install](https://github.com/johanwestling/wsl-install)
 
 ## Getting started
 ```bash
