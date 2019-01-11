@@ -39,5 +39,4 @@ fi
 if [[ "${nvx_command}" == "uninstall" ]]; then
 	nvx_update_bashrc "uninstall"
 	rm -rf "${HOME}/.nvx"
-	exec bash
 fi
